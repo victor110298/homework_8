@@ -7,10 +7,43 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ExecutorServiceEx {
-    SimpleDateFormat sdf = null;
-    private final int COUNT = 5;
+    private static SimpleDateFormat sdf = null;
+    private static final int COUNT = 5;
 
-    ExecutorServiceEx() {
+   public ExecutorServiceEx() {
+    }
+
+   private static void printMessage(final String templ) {
+        String text = sdf.format(new Date()) + " : " + templ;
+        System.out.println(text);
+    }
+
+    static class MyThread implements Runnable {
+     private String name;
+     private CountDownLatch latch;
+
+      public  MyThread(CountDownLatch c, String n) {
+            latch = c;
+            name = n;
+            new Thread(this);
+        }
+
+        public void run() {
+            try {
+                for (int i = 0; i < COUNT; i++) {
+                    printMessage(name + " - " + i);
+                    latch.countDown();
+                    Thread.sleep((long) (Math.random() * 1500));
+                }
+                printMessage(name + " completed");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String args[]) {
+        new ExecutorServiceEx();
         sdf = new SimpleDateFormat("HH:mm:ss.S");
         CountDownLatch cdl1 = new CountDownLatch(COUNT);
         CountDownLatch cdl2 = new CountDownLatch(COUNT);
@@ -33,38 +66,5 @@ public class ExecutorServiceEx {
         }
         executor.shutdown();
         System.out.println("End!");
-    }
-
-    void printMessage(final String templ) {
-        String text = sdf.format(new Date()) + " : " + templ;
-        System.out.println(text);
-    }
-
-    class MyThread implements Runnable {
-        String name;
-        CountDownLatch latch;
-
-        MyThread(CountDownLatch c, String n) {
-            latch = c;
-            name = n;
-            new Thread(this);
-        }
-
-        public void run() {
-            try {
-                for (int i = 0; i < COUNT; i++) {
-                    printMessage(name + " - " + i);
-                    latch.countDown();
-                    Thread.sleep((long) (Math.random() * 1500));
-                }
-                printMessage(name + " completed");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public static void main(String args[]) {
-        new ExecutorServiceEx();
     }
 }
